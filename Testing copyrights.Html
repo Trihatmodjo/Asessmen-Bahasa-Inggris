@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assesmen Foods and Drinks</title>
+    <!-- Tailwind CSS v3 Play CDN Resmi (Stabil & Lancar) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* BACKGROUND BLUE SKY SEGAR DENGAN POLA GRAFIS CERIA MURNI KODE CSS */
+        body {
+            background-color: #bae6fd; /* Warna Dasar Blue Sky Cerah (Sky-200) */
+            background-image: radial-gradient(#e0f2fe 20%, transparent 20%),
+                              radial-gradient(#e0f2fe 20%, transparent 20%);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+        }
+        .letter-box {
+            transition: all 0.2s ease-out;
+        }
+        .letter-box:active {
+            transform: scale(0.9);
+        }
+        canvas {
+            touch-action: none;
+        }
+        /* Efek Berkedip Halus untuk Timer Kritis */
+        @keyframes pulse-fast {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.05); }
+        }
+        .timer-pulse {
+            animation: pulse-fast 1s infinite;
+        }
+    </style>
+</head>
+<body class="min-h-screen font-sans flex flex-col items-center justify-center p-4 pb-16 relative">
+
+    <!-- 1. HALAMAN LOG IN -->
+    <div id="login-page" class="bg-white/95 backdrop-blur-sm p-8 rounded-3xl shadow-2xl max-w-md w-full text-center border-t-8 border-cyan-400 block relative z-10">
+        <h1 class="text-4xl font-black text-cyan-700 mb-2 tracking-tight">ASSESMEN</h1>
+        <h2 class="text-2xl font-bold text-teal-600 mb-8">FOODS & DRINKS</h2>
+        
+        <div class="space-y-5 text-left">
+            <div>
+                <label class="block text-gray-700 font-bold mb-2">Nama Siswa:</label>
+                <input type="text" id="student-name" class="w-full px-5 py-3 border-2 border-cyan-200 rounded-2xl focus:outline-none focus:border-cyan-500 text-lg" placeholder="Masukkan nama lengkap">
+            </div>
+            <div>
+                <label class="block text-gray-700 font-bold mb-2">Token Masuk:</label>
+                <input type="text" id="login-token" class="w-full px-5 py-3 border-2 border-cyan-200 rounded-2xl focus:outline-none focus:border-cyan-500 text-lg tracking-widest text-center uppercase" placeholder="Contoh: Budi">
+            </div>
+            <button onclick="startAssessment()" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-black py-4 px-8 rounded-2xl shadow-lg transform hover:-translate-y-0.5 transition text-xl mt-6 cursor-pointer">
+                MULAI BERMAIN
+            </button>
+            <p id="login-error" class="text-red-500 text-center font-bold hidden mt-4">Nama dan Token harus diisi! (Token bebas)</p>
+        </div>
+    </div>
+
+    <!-- 2. HALAMAN GAME/SOAL -->
+    <div id="game-page" class="bg-white/95 backdrop-blur-sm p-6 rounded-3xl shadow-2xl max-w-3xl w-full text-center border-t-8 border-teal-400 hidden relative z-20">
+        <!-- HEADER GAME: Info Soal, Sapaan Siswa Tanpa Emot Jelek, & Timer -->
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mb-5">
+            <span class="text-sm md:text-lg font-bold text-cyan-600 bg-cyan-100 px-4 py-2 rounded-full" id="question-number">Soal 1 / 20</span>
+            <span class="text-sm md:text-lg font-bold text-teal-600 bg-teal-100 px-4 py-2 rounded-full" id="student-display">Halo, Selamat Mengerjakan!</span>
+            <!-- TIMER AKURAT -->
+            <div id="timer-box" class="text-sm md:text-lg font-black bg-emerald-100 text-emerald-700 px-5 py-2 rounded-full flex items-center transition-all duration-300">
+                <span id="timer-display">10:00</span>
+            </div>
+        </div>
+        
+        <!-- Grid Konten: Gambar & Papan Tulis Digital -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <!-- Sisi Kiri: Gambar Soal -->
+            <div class="w-full h-64 md:h-72 bg-gray-100 rounded-2xl overflow-hidden border-4 border-gray-200 flex items-center justify-center shadow-inner p-2">
+                <p id="image-placeholder" class="text-gray-400 font-bold text-xl hidden">Memuat gambar...</p>
+                <img id="food-image" src="" alt="Food/Drink Image" class="max-w-full max-h-full object-contain rounded-xl shadow-md">
+            </div>
+
+            <!-- Sisi Kanan: Ruang Menulis Digital (Canvas) -->
+            <div class="flex flex-col">
+                <div class="flex justify-between items-center mb-1 px-1">
+                    <span class="text-xs font-bold text-gray-500">Latihan Tulis Jawabmu di Sini (Gunakan Mouse/Jari):</span>
+                    <button onclick="clearCanvas()" class="text-xs bg-red-100 text-red-600 px-2 py-1 rounded-md font-bold hover:bg-red-200 transition">Hapus Coretan</button>
+                </div>
+                <div id="canvas-container" class="w-full h-64 md:h-72 bg-amber-50 border-4 border-amber-200 rounded-2xl shadow-inner relative">
+                    <canvas id="drawing-canvas" class="w-full h-full cursor-crosshair"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="mb-3 text-gray-500 font-bold text-lg">Susun kata di bawah ini (Bisa ketik lewat Keyboard):</div>
+        <div id="answer-container" class="flex flex-wrap justify-center gap-3 min-h-[70px] bg-gray-50 p-4 rounded-2xl border-4 border-dashed border-gray-300 mb-2"></div>
+        
+        <p id="empty-alert" class="text-red-500 font-bold mb-4 invisible animate-pulse">Kamu harus menyusun huruf terlebih dahulu sebelum lanjut!</p>
+
+        <div id="letters-container" class="flex flex-wrap justify-center gap-4 mb-6"></div>
+
+        <div class="flex gap-5 justify-center mt-4">
+            <button id="btn-reset" onclick="resetAnswer()" class="bg-gray-500 text-white font-bold py-3 px-8 rounded-xl hover:bg-gray-600 shadow-md transition text-lg cursor-pointer">
+                Hapus Jawab
+            </button>
+            <button id="btn-next" onclick="nextQuestion()" class="bg-green-600 hover:bg-green-700 text-white font-black py-3 px-10 rounded-xl shadow-xl transition text-lg cursor-pointer">
+                Lanjut
+            </button>
+        </div>
+
+        <!-- POP-UP EVALUASI KUNCI JAWABAN & KOREKSI TULISAN DIGITAL -->
+        <div id="feedback-overlay" class="absolute inset-0 bg-white/95 rounded-3xl flex flex-col items-center justify-center p-6 hidden z-50 overflow-y-auto">
+            <div id="feedback-icon" class="text-6xl mb-2"></div>
+            <h3 id="feedback-title" class="text-3xl font-black mb-2"></h3>
+            
+            <!-- Area Perbandingan Tulisan -->
+            <div class="w-full max-w-xl bg-gray-50 p-4 rounded-2xl border-2 border-gray-200 space-y-4">
+                <div id="feedback-details" class="text-lg font-bold text-gray-700 text-center"></div>
+                
+                <!-- Pratinjau Hasil Tulisan Tangan Siswa -->
+                <div class="text-left">
+                    <p class="text-xs font-bold text-cyan-600 mb-1">Hasil Tulisan Tangan/Mouse Kamu:</p>
+                    <div class="w-full h-36 bg-amber-50 border-2 border-amber-200 rounded-xl overflow-hidden flex items-center justify-center shadow-inner">
+                        <img id="canvas-preview" class="max-w-full max-h-full object-contain" alt="Pratinjau Tulisan">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tombol Verifikasi Mandiri untuk Siswa -->
+            <div class="mt-6 w-full max-w-md bg-cyan-50 p-4 rounded-2xl border-2 border-cyan-200 text-center">
+                <p class="text-sm font-black text-cyan-800 mb-3">APAKAH TULISAN TANGANMU SUDAH SAMA & BENAR</p>
+                <div class="flex gap-4 justify-center">
+                    <button onclick="confirmSelfCorrection(false)" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-6 rounded-xl shadow-md transition text-sm cursor-pointer">
+                        Salah / Belum Sama
+                    </button>
+                    <button onclick="confirmSelfCorrection(true)" class="bg-emerald-500 hover:bg-emerald-600 text-white font-black py-2 px-6 rounded-xl shadow-md transition text-sm cursor-pointer">
+                        Ya, Sudah Sama!
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. HALAMAN SKOR & SELESAI -->
+    <div id="result-page" class="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full text-center border-t-8 border-green-400 hidden relative z-30">
+        <h2 class="text-4xl font-black text-green-600 mb-6" id="result-title">Assesmen Selesai!</h2>
+        <p class="text-2xl text-gray-700 mb-3">Terima kasih, <span id="final-name" class="font-bold text-cyan-600"></span></p>
+        <div class="bg-green-50 p-8 rounded-2xl border-4 border-green-200 my-8 shadow-inner">
+            <p class="text-xl text-gray-600 font-bold">Skor Kamu:</p>
+            <p class="text-7xl font-black text-green-500 my-2" id="final-score">0</p>
+            <p class="text-lg text-gray-500" id="correct-count">Benar 0 dari 20 soal</p>
+        </div>
+        
+        <form id="formspree-form" action="https://formspree.io/f/mkoaegzg" method="POST" class="mt-4">
+            <input type="hidden" name="Nama Siswa" id="form-student-name">
+            <input type="hidden" name="Total Skor Ujian" id="form-student-score">
+            <input type="hidden" name="Jumlah Jawaban Benar" id="form-student-correct">
+            <input type="hidden" name="Status Waktu" id="form-time-status" value="Selesai Tepat Waktu">
+            
+            <button type="submit" class="w-full bg-blue-600 text-white font-black py-3 px-6 rounded-xl shadow-lg hover:bg-blue-700 transition text-lg cursor-pointer">
+                Klik untuk Kirim Hasil ke Guru
+            </button>
+        </form>
+    </div>
+
+    <!-- 4. FOOTER DESIGN & COPYRIGHT -->
+    <footer class="fixed bottom-0 left-0 right-0 bg-slate-800 text-slate-300 text-center py-2 px-4 text-xs md:text-sm font-semibold tracking-wide shadow-inner z-50 border-t border-slate-700">
+        Copyright 2026 All Rights Reserved | <span class="text-cyan-400 font-bold">SLB NEGERI 2 PEMALANG</span> | Design By <span class="text-teal-400 font-bold">Mohammad Trihatmodjo, S.Pd</span>
+    </footer>
+
+    <script>
+        // DATA DATA 20 SOAL LENGKAP DENGAN GAMBAR STABIL
+        const quizData = [
+            { word: "BURGER", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600" },
+            { word: "COFFEE", img: "https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=600" },
+            { word: "PIZZA", img: "https://images.unsplash.com/photo-1513104890138-7c749659a591?q=80&w=600" },
+            { word: "SOUP", img: "https://cdn.pixabay.com/photo/2017/05/05/19/06/melted-2288021_640.jpg" }, 
+            { word: "CHEESE", img: "https://cdn.pixabay.com/photo/2018/06/04/14/40/cheese-3453309_640.jpg" }, 
+            { word: "DONUT", img: "https://images.unsplash.com/photo-1551024601-bec78aea704b?q=80&w=600" },
+            { word: "WATERMELON", img: "https://images.unsplash.com/photo-1587049352846-4a222e784d38?q=80&w=600" },
+            { word: "TEA", img: "https://images.unsplash.com/photo-1576092768241-dec231879fc3?q=80&w=600" }, 
+            { word: "ICECREAM", img: "https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?q=80&w=600" },
+            { word: "BANANA", img: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?q=80&w=600" },
+            { word: "MILK", img: "https://images.unsplash.com/photo-1563636619-e9143da7973b?q=80&w=600" },
+            { word: "CAKE", img: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?q=80&w=600" },
+            { word: "ORANGE", img: "https://images.unsplash.com/photo-1547514701-42782101795e?q=80&w=600" },
+            { word: "BREAD", img: "https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=600" },
+            { word: "EGG", img: "https://images.unsplash.com/photo-1506976785307-8732e854ad03?q=80&w=600" },
+            { word: "APPLE", img: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?q=80&w=600" },
+            { word: "JUICE", img: "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?q=80&w=600" },
+            { word: "CHICKEN", img: "https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?q=80&w=600" },
+            { word: "CHOCOLATE", img: "https://images.unsplash.com/photo-1511381939415-e44015466834?q=80&w=600" },
+            { word: "HONEY", img: "https://images.unsplash.com/photo-1587049633312-d628ae50a8ae?q=80&w=600" }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let studentName = "";
+        let selectedLetters = [];
+        let isGameActive = false;
+        let isBlockNext = false; 
+
+        let canvas, ctx;
+        let isDrawing = false;
+        let tempScoreHolder = 0; 
+
+        // VARIABEL UNTUK TIMER
+        let totalSeconds = 10 * 60; // 10 Menit
+        let timerInterval = null;
+        let hasWarned = false; 
+
+        let audioCtx;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+        
+        function playSound(type) {
+            initAudio();
+            if(!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'correct') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); 
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1); 
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            } else if (type === 'wrong') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.linearRampToValueAtTime(70, audioCtx.currentTime + 0.4);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } else if (type === 'warn') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(554, audioCtx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            }
+        }
+
+        function startTimer() {
+            if(timerInterval) clearInterval(timerInterval);
+            
+            timerInterval = setInterval(() => {
+                if (!isGameActive) return;
+                
+                totalSeconds--;
+
+                let mins = Math.floor(totalSeconds / 60);
+                let secs = totalSeconds % 60;
+                document.getElementById('timer-display').innerText = 
+                    `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+                let timerBox = document.getElementById('timer-box');
+
+                if (totalSeconds <= 120) { 
+                    timerBox.className = "text-sm md:text-lg font-black bg-red-100 text-red-600 px-5 py-2 rounded-full flex items-center timer-pulse transition-all duration-300";
+                    
+                    if (!hasWarned) {
+                        hasWarned = true;
+                        playSound('warn');
+                        alert("Perhatian! Waktu pengerjaan tinggal 2 menit lagi. Ayo selesaikan!");
+                    }
+                } else if (totalSeconds <= 180) { 
+                    timerBox.className = "text-sm md:text-lg font-black bg-amber-100 text-amber-700 px-5 py-2 rounded-full flex items-center transition-all duration-300";
+                }
+
+                if (totalSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    isGameActive = false;
+                    playSound('wrong');
+                    document.getElementById('form-time-status').value = "Waktu Habis Otomatis";
+                    alert("Waktu ujian 10 menit sudah habis! Aplikasi akan otomatis menyimpan hasil kerjamu.");
+                    showResult(true); 
+                }
+            }, 1000);
+        }
+
+        function initCanvas() {
+            canvas = document.getElementById('drawing-canvas');
+            if(!canvas) return;
+            
+            ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+
+            ctx.strokeStyle = '#0e7490'; 
+            ctx.lineWidth = 4;           
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            canvas.onmousedown = startDrawing;
+            canvas.onmousemove = draw;
+            canvas.onmouseup = stopDrawing;
+            canvas.onmouseleave = stopDrawing;
+
+            canvas.ontouchstart = function(e) {
+                let touch = e.touches[0];
+                let rect = canvas.getBoundingClientRect();
+                isDrawing = true;
+                ctx.beginPath();
+                ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+            };
+            canvas.ontouchmove = function(e) {
+                if (!isDrawing) return;
+                let touch = e.touches[0];
+                let rect = canvas.getBoundingClientRect();
+                ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+                ctx.stroke();
+            };
+            canvas.ontouchend = stopDrawing;
+        }
+
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = canvas.getBoundingClientRect();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function clearCanvas() {
+            if(ctx && canvas) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        function setFoodImage(src) {
+            const imgElement = document.getElementById('food-image');
+            const placeholder = document.getElementById('image-placeholder');
+            imgElement.src = ""; 
+            imgElement.classList.add('hidden');
+            placeholder.classList.remove('hidden');
+
+            imgElement.onload = () => {
+                placeholder.classList.add('hidden');
+                imgElement.classList.remove('hidden');
+            };
+            imgElement.src = src;
+        }
+
+        function startAssessment() {
+            studentName = document.getElementById('student-name').value.trim();
+            let token = document.getElementById('login-token').value.trim();
+
+            if (studentName === "" || token === "") {
+                document.getElementById('login-error').classList.remove('hidden');
+                return;
+            }
+
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('login-page').classList.add('hidden');
+            
+            let gamePage = document.getElementById('game-page');
+            gamePage.classList.remove('hidden');
+            gamePage.style.display = 'block';
+            
+            document.getElementById('student-display').innerText = "Halo " + studentName + ", Selamat Mengerjakan!";
+            isGameActive = true;
+            
+            setTimeout(() => {
+                initCanvas();
+                startTimer(); 
+            }, 250);
+            
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            selectedLetters = [];
+            document.getElementById('empty-alert').classList.add('invisible');
+            document.getElementById('answer-container').innerHTML = '';
+            document.getElementById('question-number').innerText = `Soal ${currentQuestion + 1} / 20`;
+            document.getElementById('feedback-overlay').classList.add('hidden');
+            
+            clearCanvas(); 
+            isBlockNext = false;
+
+            let currentData = quizData[currentQuestion];
+            setFoodImage(currentData.img);
+
+            let lettersArray = currentData.word.split('');
+            let scrambled = lettersArray.sort(() => Math.random() - 0.5);
+
+            let lettersContainer = document.getElementById('letters-container');
+            lettersContainer.innerHTML = '';
+
+            scrambled.forEach((letter, index) => {
+                let btn = document.createElement('button');
+                btn.innerText = letter;
+                btn.className = "letter-box bg-cyan-600 text-white font-black text-3xl w-16 h-16 rounded-2xl shadow-lg border-b-8 border-cyan-800 hover:bg-cyan-500 flex items-center justify-center cursor-pointer transform hover:-translate-y-1 transition-all";
+                btn.id = `letter-${index}`;
+                btn.setAttribute('data-letter', letter.toUpperCase());
+                btn.onclick = () => selectLetter(letter, `letter-${index}`);
+                lettersContainer.appendChild(btn);
+            });
+        }
+
+        function selectLetter(letter, btnId) {
+            let btn = document.getElementById(btnId);
+            if (btn.style.visibility === "hidden") return;
+
+            document.getElementById('empty-alert').classList.add('invisible');
+            btn.style.visibility = "hidden";
+            selectedLetters.push({ letter: letter, sourceId: btnId });
+            renderAnswer();
+        }
+
+        function renderAnswer() {
+            let answerContainer = document.getElementById('answer-container');
+            answerContainer.innerHTML = '';
+            selectedLetters.forEach((item) => {
+                let box = document.createElement('div');
+                box.innerText = item.letter;
+                box.className = "w-14 h-14 bg-teal-500 text-white font-black text-3xl rounded-2xl flex items-center justify-center shadow-md border-b-8 border-teal-700";
+                answerContainer.appendChild(box);
+            });
+        }
+
+        function resetAnswer() {
+            selectedLetters.forEach(item => {
+                let element = document.getElementById(item.sourceId);
+                if(element) element.style.visibility = "visible";
+            });
+            selectedLetters = [];
+            renderAnswer();
+        }
+
+        function nextQuestion() {
+            if (isBlockNext) return;
+
+            let currentData = quizData[currentQuestion];
+            let studentAnswer = selectedLetters.map(item => item.letter).join('');
+
+            if (studentAnswer.length === 0) {
+                document.getElementById('empty-alert').classList.remove('invisible');
+                return;
+            }
+
+            isBlockNext = true;
+            const isCorrect = (studentAnswer === currentData.word);
+            
+            const previewImg = document.getElementById('canvas-preview');
+            previewImg.src = canvas.toDataURL();
+
+            const overlay = document.getElementById('feedback-overlay');
+            const fbIcon = document.getElementById('feedback-icon');
+            const fbTitle = document.getElementById('feedback-title');
+            const fbDetails = document.getElementById('feedback-details');
+
+            tempScoreHolder = 0;
+
+            if (isCorrect) {
+                tempScoreHolder = 5; 
+                playSound('correct');
+                fbIcon.innerText = "?";
+                fbTitle.innerText = "SUSUNAN HURUF BENAR!";
+                fbTitle.className = "text-3xl font-black text-green-600 mb-2";
+                fbDetails.innerHTML = `<p class="text-center text-xl text-slate-700">Kunci Jawaban Kata: <span class="text-green-600 underline font-extrabold tracking-widest">${currentData.word}</span></p>`;
+            } else {
+                tempScoreHolder = 0; 
+                playSound('wrong');
+                fbIcon.innerText = "?";
+                fbTitle.innerText = "SUSUNAN HURUF SALAH";
+                fbTitle.className = "text-3xl font-black text-red-600 mb-2";
+                fbDetails.innerHTML = `
+                    <p class="text-gray-600 text-sm">Susunanmu: <span class="text-red-500 line-through">${studentAnswer}</span></p>
+                    <p class="text-base mt-1">Kunci Kata yang Benar:</p>
+                    <p class="text-2xl text-green-600 font-extrabold tracking-widest">${currentData.word}</p>
+                `;
+            }
+
+            overlay.classList.remove('hidden');
+        }
+
+        function confirmSelfCorrection(isHandwritingCorrect) {
+            if (tempScoreHolder === 5 && isHandwritingCorrect) {
+                score += 5; 
+            } else if (tempScoreHolder === 5 && !isHandwritingCorrect) {
+                playSound('wrong');
+                alert("Susunan kata benar, namun menulismu di papan tulis masih ada yang keliru/kosong. Poin tidak bertambah ya. Coba lagi di soal berikutnya!");
+            }
+
+            currentQuestion++;
+            if (currentQuestion < quizData.length) {
+                loadQuestion();
+            } else {
+                showResult(false);
+            }
+        }
+
+        function showResult(isTimeOut = false) {
+            isGameActive = false;
+            if(timerInterval) clearInterval(timerInterval);
+
+            document.getElementById('game-page').style.display = 'none';
+            document.getElementById('game-page').classList.add('hidden');
+            
+            let resPage = document.getElementById('result-page');
+            resPage.classList.remove('hidden');
+            resPage.style.display = 'block';
+
+            if(isTimeOut) {
+                document.getElementById('result-title').innerText = "Waktu Habis!";
+                document.getElementById('result-title').className = "text-4xl font-black text-red-500 mb-6";
+            }
+            
+            document.getElementById('final-name').innerText = studentName;
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('correct-count').innerText = `Benar ${score/5} dari 20 soal`;
+
+            document.getElementById('form-student-name').value = studentName;
+            document.getElementById('form-student-score').value = score;
+            document.getElementById('form-student-correct').value = `${score/5} dari 20 Soal`;
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (!isGameActive || isBlockNext) return;
+
+            const pressedKey = event.key.toUpperCase();
+
+            if (event.key === 'Enter') {
+                nextQuestion();
+                return;
+            }
+
+            if (event.key === 'Backspace' || event.key === 'Delete') {
+                resetAnswer();
+                return;
+            }
+
+            if (pressedKey.length === 1 && pressedKey >= 'A' && pressedKey <= 'Z') {
+                const buttons = document.querySelectorAll('#letters-container button');
+                for (let btn of buttons) {
+                    if (btn.getAttribute('data-letter') === pressedKey && btn.style.visibility !== 'hidden') {
+                        btn.click();
+                        break;
+                    }
+                }
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            if (canvas && isGameActive) {
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+                ctx.strokeStyle = '#0e7490';
+                ctx.lineWidth = 4;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+            }
+        });
+    </script>
+</body>
+</html>
