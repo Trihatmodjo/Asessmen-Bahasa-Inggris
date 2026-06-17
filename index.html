@@ -18,12 +18,11 @@
 </head>
 <body class="min-h-screen font-sans flex flex-col items-center justify-center p-4 pb-24 relative">
 
-    <!-- 1. HALAMAN LOG IN -->
     <div id="login-page" class="bg-white/95 backdrop-blur-sm p-8 rounded-3xl shadow-2xl max-w-md w-full text-center border-t-8 border-amber-500 relative z-10">
         <div class="pt-4"></div>
         <h1 class="text-4xl font-black text-amber-600 mb-2 tracking-tight">ASSESMEN</h1>
         <h2 class="text-2xl font-bold text-orange-500 mb-8">FOODS & DRINKS</h2>
-        
+         
         <div class="space-y-5 text-left">
             <div>
                 <label class="block text-gray-700 font-bold mb-2">Nama Siswa:</label>
@@ -40,7 +39,6 @@
         </div>
     </div>
 
-    <!-- 2. HALAMAN GAME/PLAYGROUND -->
     <div id="game-page" class="bg-white/95 backdrop-blur-sm p-6 rounded-3xl shadow-2xl max-w-5xl w-full text-center border-t-8 border-orange-400 relative z-20 hidden">
         <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mb-5">
             <span class="text-sm md:text-lg font-bold text-amber-700 bg-amber-100 px-4 py-2 rounded-full" id="question-number">Soal 1 / 20</span>
@@ -49,14 +47,12 @@
                 <span id="timer-display">10:00</span>
             </div>
         </div>
-        
+         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <!-- UKURAN GAMBAR SOAL GREGET -->
             <div class="w-full h-80 md:h-[400px] bg-gray-100 rounded-2xl overflow-hidden border-4 border-orange-300 flex items-center justify-center shadow-inner p-3">
                 <img id="food-image" src="" alt="Food/Drink Image" class="w-full h-full object-contain rounded-xl shadow-md transform scale-105 transition-transform duration-300">
             </div>
 
-            <!-- CANVAS TULISAN TANGAN -->
             <div class="flex flex-col">
                 <div class="flex justify-between items-center mb-1 px-1">
                     <span class="text-xs font-bold text-gray-500">Latihan Tulis Jawabmu di Sini:</span>
@@ -70,7 +66,7 @@
 
         <div class="mb-3 text-gray-500 font-bold text-lg">Susun kata di bawah ini:</div>
         <div id="answer-container" class="flex flex-wrap justify-center gap-3 min-h-[70px] bg-gray-50 p-4 rounded-2xl border-4 border-dashed border-gray-300 mb-2"></div>
-        
+         
         <p id="empty-alert" class="text-red-500 font-bold mb-4 invisible">Kamu harus menyusun huruf terlebih dahulu sebelum lanjut!</p>
 
         <div id="letters-container" class="flex flex-wrap justify-center gap-4 mb-6"></div>
@@ -82,11 +78,11 @@
 
         <div id="feedback-overlay" class="absolute inset-0 bg-white/95 rounded-3xl flex flex-col items-center justify-center p-6 z-50 overflow-y-auto hidden">
             <h3 id="feedback-title" class="text-3xl font-black mb-4"></h3>
-            
+             
             <div class="w-full max-w-xl bg-gray-50 p-4 rounded-2xl border-2 border-gray-200 space-y-4">
                 <p class="text-xs font-bold text-amber-600 bg-amber-100 py-1 px-3 rounded-full inline-block">Info: Klik tombol hijau di bawah untuk mendengar suaranya</p>
                 <div id="feedback-details" class="text-lg font-bold text-gray-700 text-center"></div>
-                
+                 
                 <div class="text-left">
                     <p class="text-xs font-bold text-cyan-600 mb-1">Hasil Tulisan Tangan Kamu:</p>
                     <div class="w-full h-36 bg-amber-50 border-2 border-amber-200 rounded-xl overflow-hidden flex items-center justify-center shadow-inner">
@@ -105,7 +101,6 @@
         </div>
     </div>
 
-    <!-- 3. HALAMAN SKOR AKHIR -->
     <div id="result-page" class="bg-white p-8 rounded-3xl shadow-2xl max-w-md w-full text-center border-t-8 border-green-400 relative z-30 hidden">
         <h2 class="text-4xl font-black text-green-600 mb-6" id="result-title">Assesmen Selesai!</h2>
         <p class="text-2xl text-gray-700 mb-3">Terima kasih, <span id="final-name" class="font-bold text-amber-600"></span></p>
@@ -114,19 +109,20 @@
             <p class="text-7xl font-black text-green-500 my-2" id="final-score">0</p>
             <p class="text-lg text-gray-500" id="correct-count">Benar 0 dari 20 soal</p>
         </div>
-        
-        <form id="formspree-form" action="https://formspree.io/f/mkoaegzg" method="POST" class="mt-4">
+         
+        <form id="formspree-form" class="mt-4">
             <input type="hidden" name="Nama Siswa" id="form-student-name">
             <input type="hidden" name="Total Skor Ujian" id="form-student-score">
             <input type="hidden" name="Jumlah Jawaban Benar" id="form-student-correct">
             <input type="hidden" name="Status Waktu" id="form-time-status" value="Selesai Tepat Waktu">
-            <button type="submit" class="w-full bg-blue-600 text-white font-black py-3 px-6 rounded-xl shadow-lg hover:bg-blue-700 text-lg cursor-pointer">
+            
+            <button type="submit" id="btn-submit-form" class="w-full bg-blue-600 text-white font-black py-3 px-6 rounded-xl shadow-lg hover:bg-blue-700 text-lg cursor-pointer transition duration-200">
                 Klik untuk Kirim Hasil ke Guru
             </button>
         </form>
+        <p id="submit-status" class="mt-4 font-bold text-sm hidden"></p>
     </div>
 
-    <!-- FOOTER KREDIT DENGAN NAMA SEKOLAH BEBAS KOTAK + NAMA GRADASI GLOW -->
     <footer class="fixed bottom-0 left-0 right-0 bg-slate-900/90 backdrop-blur-sm text-slate-400 text-center py-3 px-4 text-xs md:text-sm tracking-wider shadow-2xl z-50 border-t border-slate-800 font-medium">
         <span class="opacity-75">Copyright 2026 All Rights Reserved</span> 
         <span class="mx-2 text-slate-600">|</span> 
@@ -138,7 +134,6 @@
         </span>
     </footer>
 
-    <!-- LOGIKA JAVASCRIPT (SISTEM UTAMA - AMAN & SEJAHTERA) -->
     <script>
         const quizData = [
             { word: "BURGER", img: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=600" },
@@ -200,6 +195,7 @@
 
                 if (totalSeconds <= 0) {
                     clearInterval(timerInterval);
+                    document.getElementById('form-time-status').value = "Waktu Habis!";
                     showResult(true); 
                 }
             }, 1000);
@@ -253,7 +249,17 @@
         function clearCanvas() { if(ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
         function startAssessment() {
-            studentName = document.getElementById('student-name').value.trim() || "Siswa SLB";
+            let nameInput = document.getElementById('student-name').value.trim();
+            let tokenInput = document.getElementById('login-token').value.trim();
+            
+            if(!nameInput || !tokenInput) {
+                document.getElementById('login-error').classList.remove('hidden');
+                return;
+            } else {
+                document.getElementById('login-error').classList.add('hidden');
+            }
+            
+            studentName = nameInput;
             
             document.getElementById('login-page').style.display = 'none';
             document.getElementById('login-page').className = 'hidden';
@@ -383,6 +389,8 @@
 
         function showResult(isTimeOut = false) {
             isGameActive = false;
+            if(timerInterval) clearInterval(timerInterval);
+
             document.getElementById('game-page').classList.add('hidden');
             document.getElementById('result-page').classList.remove('hidden');
             
@@ -390,10 +398,61 @@
             document.getElementById('final-score').innerText = score;
             document.getElementById('correct-count').innerText = `Benar ${score/5} dari 20 soal`;
 
+            // Setup value form sebelum dikirim
             document.getElementById('form-student-name').value = studentName;
             document.getElementById('form-student-score').value = score;
             document.getElementById('form-student-correct').value = `${score/5} dari 20 Soal`;
         }
+
+        // LOGIKA BARU: INTERSEPSI PENGIRIMAN FORM VIA AJAX FETCH
+        document.getElementById('formspree-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Cegah reload halaman otomatis
+
+            const btnSubmit = document.getElementById('btn-submit-form');
+            const statusMessage = document.getElementById('submit-status');
+            
+            // Ubah tampilan tombol saat proses mengirim
+            btnSubmit.disabled = true;
+            btnSubmit.innerText = "Sedang Mengirim...";
+            btnSubmit.className = "w-full bg-gray-400 text-white font-black py-3 px-6 rounded-xl shadow-lg text-lg cursor-not-allowed";
+
+            const formData = new FormData(this);
+
+            // Kirim data ke Formspree secara asinkronus (di balik layar)
+            fetch('https://formspree.io/f/mkoaegzg', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (response.ok) {
+                    statusMessage.innerText = "✓ Berhasil! Hasil ujian telah dikirim ke email Guru.";
+                    statusMessage.className = "mt-4 font-bold text-sm text-green-600 bg-green-50 p-3 rounded-xl border border-green-200 block";
+                    btnSubmit.innerText = "Terbuka & Terkirim!";
+                } else {
+                    response.json().then(data => {
+                        if (Object.hasOwn(data, 'errors')) {
+                            statusMessage.innerText = "Gagal: " + data.errors.map(error => error.message).join(", ");
+                        } else {
+                            statusMessage.innerText = "Oops! Ada kendala saat mengirim data.";
+                        }
+                        statusMessage.className = "mt-4 font-bold text-sm text-red-600 bg-red-50 p-3 rounded-xl border border-red-200 block";
+                        btnSubmit.disabled = false;
+                        btnSubmit.innerText = "Coba Kirim Lagi";
+                        btnSubmit.className = "w-full bg-blue-600 text-white font-black py-3 px-6 rounded-xl shadow-lg hover:bg-blue-700 text-lg cursor-pointer";
+                    });
+                }
+            })
+            .catch(error => {
+                statusMessage.innerText = "Koneksi Bermasalah. Pastikan internet aktif!";
+                statusMessage.className = "mt-4 font-bold text-sm text-red-600 bg-red-50 p-3 rounded-xl border border-red-200 block";
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = "Coba Kirim Lagi";
+                btnSubmit.className = "w-full bg-blue-600 text-white font-black py-3 px-6 rounded-xl shadow-lg hover:bg-blue-700 text-lg cursor-pointer";
+            });
+        });
 
         window.addEventListener('resize', () => {
             if (isGameActive && canvas) {
